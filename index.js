@@ -3,7 +3,7 @@ const bodyParser = require('body-parser')
 const cors = require('cors');
 const app = express()
 const PORT = process.env.DB_NAME || 3000;
-const { connectRedis, client } = require("./config/redis.config");
+const { connectRedis, redisClient } = require("./config/redis.config");
 
 const { errorMiddleWare } = require('./middleware/error.middleware');
 const PokemonRouter = require("./router/pokemon.router")
@@ -35,8 +35,8 @@ async function shutdown(signal) {
       console.log("HTTP server closed");
     }
 
-    if (client.isOpen) {
-      await client.quit(); // graceful close
+    if (redisClient.isOpen) {
+      await redisClient.quit(); // graceful close
       console.log("Redis disconnected");
     }
 

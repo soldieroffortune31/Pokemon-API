@@ -3,17 +3,29 @@ const { pokemon } = require("../models")
 const PokemonAPI = require("../api/pokemon.api")
 const validate = require("../validation/validate")
 const { updatePokemonValidation } = require("../validation/pokemon.validation")
+const PokemonChace = require("../cache/pokemon.cache")
 
 const Create = async (id) => {
 
-    const getPokemonAPI = await PokemonAPI.GetPokemonById(id)
+    const key = `pokemon:${id}`
+    const keyPokemonAPI = `pokemon:api:${id}`
+    
+    let getPokemonAPI = await PokemonChace.get(keyPokemonAPI)
+    if (!getPokemonAPI) {
+        getPokemonAPI = await PokemonAPI.GetPokemonById(id)
+        await PokemonChace.set(keyPokemonAPI, getPokemonAPI)
+    }    
 
-    const getPokemon = await pokemon.findOne({
-        where: {
-            id
-        }
-    })
+    let getPokemon = await PokemonChace.get(key)
+    if (!getPokemon) {
+        getPokemon = await pokemon.findOne({
+            where: {
+                id
+            }
+        })
+    }
 
+    let result
     if (getPokemon) {
         const update = await pokemon.update(
             getPokemonAPI,
@@ -25,29 +37,36 @@ const Create = async (id) => {
             }
         )
 
-        const data = await pokemon.findOne({
+        result = await pokemon.findOne({
             where: {
                 id
             }
         })
-
-        return data
+    } else {
+        result = await pokemon.create(getPokemonAPI)
     }
 
-    const save = await pokemon.create(getPokemonAPI)
 
-    return save
+    await PokemonChace.del(key)
+    await PokemonChace.set(key, result)
+
+    return result
 }
 
 const Update = async (request) => {
 
     request = validate(updatePokemonValidation, request)
-
-    let getPokemon = await pokemon.findOne({
-        where: {
-            id: request.id
-        }
-    })
+    
+    const key = `pokemon:${request.id}`
+    let getPokemon = await PokemonChace.get(key)
+    
+    if (!getPokemon) {
+        getPokemon = await pokemon.findOne({
+            where: {
+                id: request.id
+            }
+        })
+    }
 
     if (!getPokemon) throw new ResponseError(404, "data not found")
 
@@ -66,6 +85,9 @@ const Update = async (request) => {
         }
     })
 
+    await PokemonChace.del(key)
+    await PokemonChace.set(key, getPokemon)
+
     return getPokemon
 }
 
@@ -75,10 +97,17 @@ const FindAll = async (params) => {
     limit = limit ? parseInt(limit) : 10
     offset = offset ? parseInt(offset) : 0
 
-    const getPokemon = await pokemon.findAll({
-        limit,
-        offset,
-    })
+    const key = `pokemon:limit:${limit}:offset:${offset}`
+
+    let getPokemon = await PokemonChace.get(key)
+    if (!getPokemon) {
+        getPokemon = await pokemon.findAll({
+            limit,
+            offset,
+        })
+        await PokemonChace.set(key, getPokemon)
+    }
+
 
     const totalPokemon = await pokemon.count()
 
@@ -92,6 +121,12 @@ const FindAll = async (params) => {
 }
 
 const FindById = async (id) => {
+    const key = `pokemon:${id}`
+
+    const pokemonCache = await PokemonChace.get(key)
+
+    if (pokemonCache) return pokemonCache
+
     const getPokemon = await pokemon.findOne({
         where: {
             id
@@ -102,17 +137,27 @@ const FindById = async (id) => {
         throw new ResponseError(404, "data not found")
     }
 
+    await PokemonChace.set(key, getPokemon)
+
     return getPokemon
 }
 
 const Delete = async (id) => {
-    const getPokemon = await pokemon.findOne({
-        where: {
-            id
-        }
-    })
+    const key = `pokemon:${id}`
+
+    let getPokemon = await PokemonChace.get(key)
+
+    if (!getPokemon) {
+        getPokemon = await pokemon.findOne({
+            where: {
+                id
+            }
+        })
+    }
 
     if (!getPokemon) throw ResponseError(404, "data not found")
+
+    await PokemonChace.del(key)
 
     await pokemon.destroy({
         where: {
