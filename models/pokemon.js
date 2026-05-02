@@ -16,6 +16,12 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "pokemon_id",
         sourceKey: "pokemon_id"
       })
+
+      pokemon.hasOne(models.sprites, {
+        as: "sprites",
+        foreignKey: "pokemon_id",
+        sourceKey: "pokemon_id"
+      })
     }
   }
   pokemon.init({
@@ -43,11 +49,7 @@ module.exports = (sequelize, DataTypes) => {
     base_experience: {
         allowNull: false,
         type: DataTypes.INTEGER
-    },
-    image: {
-        allowNull: false,
-        type: DataTypes.TEXT
-    },
+    }
   }, {
     sequelize,
     modelName: 'pokemon',

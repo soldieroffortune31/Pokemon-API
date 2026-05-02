@@ -1,9 +1,13 @@
 const ResponseError = require("../error/error.response")
-const { sequelize, pokemon, abilities, pokemon_abilities } = require("../models")
+const { sequelize, pokemon, abilities, pokemon_abilities, sprites } = require("../models")
 const PokemonAPI = require("../api/pokemon.api")
 const validate = require("../validation/validate")
 const { updatePokemonValidation } = require("../validation/pokemon.validation")
 const PokemonChace = require("../cache/pokemon.cache")
+const AbilityRepository = require("../repository/abilities.repository")
+const PokemonRepository = require("../repository/pokemon.repository")
+const PokemonAbilitiesRepository = require("../repository/pokemon_abilities.repository")
+const SpritesRepository = require("../repository/sprites.repository")
 
 const Create = async (id) => {
     await sequelize.transaction(async (t) => {
@@ -19,70 +23,42 @@ const Create = async (id) => {
     
         let getPokemon = await PokemonChace.get(key)
         if (!getPokemon) {
-            getPokemon = await pokemon.findOne({
-                where: {
-                    id
-                },
-                transaction: t
-            })
+            getPokemon = await PokemonRepository.FindById(id, t)
         }
 
+        let pokemon_id
         let result
         if (getPokemon) {
-            const update = await pokemon.update(
-                getPokemonAPI,
-                {
-                    where: {
-                        id
-                    },
-                    transaction: t
-                }
-            )
-    
-            result = await pokemon.findOne({
-                where: {
-                    id
-                }
-            })
+            await PokemonRepository.Update(getPokemonAPI, id, t)
+            pokemon_id = getPokemon.pokemon_id
         } else {
-            result = await pokemon.create(getPokemonAPI, 
-            {
-                transaction: t
-            })
+            result = await PokemonRepository.Save(getPokemonAPI, t) 
+            pokemon_id = result.pokemon_id
         }
 
-        await pokemon_abilities.destroy({
-            where: {
-                pokemon_id: result.pokemon_id
-            },
-            force: true,
-            transaction: t
-        })
+        await PokemonAbilitiesRepository.DeleteForce(pokemon_id)
 
         if (getPokemonAPI?.abilities?.length > 0) {
             for (let index = 0; index < getPokemonAPI.abilities.length; index++) {
                 const element = getPokemonAPI.abilities[index];
                 
-                const [ability] = await abilities.findOrCreate({
-                    where: {
-                        name: element.ability.name
-                    },
-                    defaults: {
-                        url: element.ability.url
-                    },
-                    transaction: t
-                })
+                const ability = await AbilityRepository.FindOrCreate(element.ability, t)
 
-                await pokemon_abilities.create({
-                    pokemon_id: result.pokemon_id,
+                await PokemonAbilitiesRepository.Save({
+                    pokemon_id: pokemon_id,
                     ability_id: ability.ability_id,
                     is_hidden: element.is_hidden,
                     slot: element.slot
-                }, {
-                    transaction: t
-                })
+                }, t)
             }
         }
+
+        const spritesPayload = getPokemonAPI.sprites
+        spritesPayload.pokemon_id = pokemon_id
+
+        await SpritesRepository.Upsert(spritesPayload, t)
+
+        result = await PokemonRepository.FindById(id, t)
     
         await PokemonChace.del(key)
         await PokemonChace.set(key, result)
@@ -95,33 +71,19 @@ const Update = async (request) => {
 
     request = validate(updatePokemonValidation, request)
     
-    const key = `pokemon:${request.id}`
+    const id = request.id
+    const key = `pokemon:${id}`
     let getPokemon = await PokemonChace.get(key)
     
     if (!getPokemon) {
-        getPokemon = await pokemon.findOne({
-            where: {
-                id: request.id
-            }
-        })
+        getPokemon = await PokemonRepository.FindById(id)
     }
 
     if (!getPokemon) throw new ResponseError(404, "data not found")
 
-    await pokemon.update(
-        request,
-        {
-            where: {
-                id: request.id
-            }
-        }
-    )
+    await PokemonRepository.Update(request, id)
 
-    getPokemon = await pokemon.findOne({
-        where: {
-            id: request.id
-        }
-    })
+    getPokemon = await PokemonRepository.FindById(id)
 
     await PokemonChace.del(key)
     await PokemonChace.set(key, getPokemon)
@@ -136,18 +98,15 @@ const FindAll = async (params) => {
     offset = offset ? parseInt(offset) : 0
 
     const key = `pokemon:limit:${limit}:offset:${offset}`
+    const filter = {}
 
     let getPokemon = await PokemonChace.get(key)
     if (!getPokemon) {
-        getPokemon = await pokemon.findAll({
-            limit,
-            offset,
-        })
+        getPokemon = await PokemonRepository.FindAll(filter, limit, offset)
         await PokemonChace.set(key, getPokemon)
     }
 
-
-    const totalPokemon = await pokemon.count()
+    const totalPokemon = await PokemonRepository.Count(filter)
 
     const meta = {
         limit,
@@ -165,26 +124,7 @@ const FindById = async (id) => {
 
     if (pokemonCache) return pokemonCache
 
-    const getPokemon = await pokemon.findOne({
-        where: {
-            id
-        },
-        attributes: ["pokemon_id", "id", "height", "weight", "image"],
-        include: [
-            {
-                model: pokemon_abilities,
-                as: "abilities",
-                attributes: ["is_hidden", "slot"],
-                include: [
-                    {
-                        model: abilities,
-                        as: "ability",
-                        attributes: ["name", "url"]
-                    }
-                ]
-            }
-        ]
-    })
+    const getPokemon = await PokemonRepository.FindById(id)
 
     if (!getPokemon) {
         throw new ResponseError(404, "data not found")
@@ -196,26 +136,23 @@ const FindById = async (id) => {
 }
 
 const Delete = async (id) => {
-    const key = `pokemon:${id}`
-
-    let getPokemon = await PokemonChace.get(key)
-
-    if (!getPokemon) {
-        getPokemon = await pokemon.findOne({
-            where: {
-                id
-            }
-        })
-    }
-
-    if (!getPokemon) throw ResponseError(404, "data not found")
-
-    await PokemonChace.del(key)
-
-    await pokemon.destroy({
-        where: {
-            id
+    await sequelize.transaction(async (t) => {
+        const key = `pokemon:${id}`
+    
+        let getPokemon = await PokemonChace.get(key)
+    
+        if (!getPokemon) {
+            getPokemon = await PokemonRepository.FindById(id)
         }
+    
+        if (!getPokemon) throw ResponseError(404, "data not found")
+    
+        const pokemon_id = getPokemon.pokemon_id
+        await PokemonChace.del(key)
+    
+        await PokemonRepository.Delete(id)
+        await PokemonAbilitiesRepository.Delete(pokemon_id)
+        await SpritesRepository.Delete(pokemon_id)
     })
 }
 

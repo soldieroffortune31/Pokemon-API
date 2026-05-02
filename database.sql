@@ -7,7 +7,6 @@ CREATE TABLE pokemons (
     height INT NOT NULL,
     weight INT NOT NULL,
     base_experience INT NOT NULL,
-    image TEXT,
     createdAt DATETIME,
     updatedAt DATETIME,
     deletedAt DATETIME
@@ -39,4 +38,24 @@ CREATE TABLE pokemon_abilities (
     CONSTRAINT fk_pokemon_abilities_ability
         FOREIGN KEY (ability_id)
         REFERENCES abilities(ability_id)
+);
+
+CREATE TABLE sprites (
+   sprite_id INT AUTO_INCREMENT PRIMARY KEY,
+   pokemon_id INT UNIQUE,
+   back_default TEXT,
+   back_female TEXT,
+   back_shiny TEXT,
+   back_shiny_female TEXT,
+   front_default TEXT,
+   front_female TEXT,
+   front_shiny TEXT,
+   front_shiny_female TEXT,
+   createdAt DATETIME,
+   updatedAt DATETIME,
+   deletedAt DATETIME,
+    
+   CONSTRAINT fk_sprites_pokemons
+    	FOREIGN KEY (pokemon_id)
+    	REFERENCES pokemons(pokemon_id)
 );

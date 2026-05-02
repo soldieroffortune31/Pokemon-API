@@ -17,8 +17,17 @@ const ToPokemonReponse = (data) => {
         height: data.height,
         weight: data.weight,
         base_experience: data.base_experience,
-        image: data?.sprites?.other?.home?.front_default || null,
-        abilities: data.abilities
+        abilities: data.abilities,
+        sprites: {
+            back_default: data?.sprites?.back_default || null,
+            back_female: data?.sprites?.back_female || null,
+            back_shiny: data?.sprites?.back_shiny || null,
+            back_shiny_female: data?.sprites?.back_shiny_female || null,
+            front_default: data?.sprites?.front_default || null,
+            front_female: data?.sprites?.front_female || null,
+            front_shiny: data?.sprites?.front_shiny || null,
+            front_shiny_female: data?.sprites?.front_shiny_female || null,
+        }
     }
 } 
 
