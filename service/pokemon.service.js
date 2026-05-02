@@ -10,7 +10,7 @@ const PokemonAbilitiesRepository = require("../repository/pokemon_abilities.repo
 const SpritesRepository = require("../repository/sprites.repository")
 
 const Create = async (id) => {
-    await sequelize.transaction(async (t) => {
+    return await sequelize.transaction(async (t) => {
     
         const key = `pokemon:${id}`
         const keyPokemonAPI = `pokemon:api:${id}`
@@ -59,7 +59,7 @@ const Create = async (id) => {
         await SpritesRepository.Upsert(spritesPayload, t)
 
         result = await PokemonRepository.FindById(id, t)
-    
+        
         await PokemonChace.del(key)
         await PokemonChace.set(key, result)
     
