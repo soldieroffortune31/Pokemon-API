@@ -90,15 +90,61 @@ Response
   "code": 200,
   "message": "Success create data pokemon",
   "data": {
-    "pokemon_id": 5,
-    "id": 3,
-    "name": "venusaur",
-    "height": 20,
-    "weight": 1000,
-    "base_experience": 236,
-    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/3.png",
-    "updatedAt": "2026-05-01T09:01:43.171Z",
-    "createdAt": "2026-05-01T09:01:43.171Z"
+    "pokemon_id": 7,
+    "id": 4,
+    "name": "charmander",
+    "height": 6,
+    "weight": 85,
+    "base_experience": 62,
+    "abilities": [
+      {
+        "is_hidden": false,
+        "slot": 1,
+        "ability": {
+          "name": "blaze",
+          "url": "https://pokeapi.co/api/v2/ability/66/"
+        }
+      },
+      {
+        "is_hidden": true,
+        "slot": 3,
+        "ability": {
+          "name": "solar-power",
+          "url": "https://pokeapi.co/api/v2/ability/94/"
+        }
+      },
+      {
+        "is_hidden": false,
+        "slot": 1,
+        "ability": {
+          "name": "blaze",
+          "url": "https://pokeapi.co/api/v2/ability/66/"
+        }
+      },
+      {
+        "is_hidden": true,
+        "slot": 3,
+        "ability": {
+          "name": "solar-power",
+          "url": "https://pokeapi.co/api/v2/ability/94/"
+        }
+      }
+    ],
+    "sprites": {
+      "sprite_id": 13,
+      "pokemon_id": 7,
+      "back_default": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/4.png",
+      "back_female": null,
+      "back_shiny": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/shiny/4.png",
+      "back_shiny_female": null,
+      "front_default": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png",
+      "front_female": null,
+      "front_shiny": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/4.png",
+      "front_shiny_female": null,
+      "createdAt": "2026-05-02T06:39:11.000Z",
+      "updatedAt": "2026-05-02T06:51:47.000Z",
+      "deletedAt": null
+    }
   }
 }
 ```
@@ -116,11 +162,10 @@ PUT /pokemon/:id
 
 ```json
 {
-  "name": "bulbasaur",
-  "height": 7,
-  "weight": 69,
-  "base_experience": 64,
-  "image": "image-url"
+  "name": "charmanderaaa",
+  "height": 6,
+  "weight": 85,
+  "base_experience": 62
 }
 ```
 
@@ -130,16 +175,45 @@ Response
   "code": 200,
   "message": "Success create update pokemon",
   "data": {
-    "pokemon_id": 4,
-    "id": 2,
-    "name": "bulbasaur",
-    "height": 7,
-    "weight": 69,
-    "base_experience": 64,
-    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/1.png",
-    "createdAt": "2026-05-01T04:39:04.000Z",
-    "updatedAt": "2026-05-01T09:06:39.000Z",
-    "deletedAt": null
+    "pokemon_id": 7,
+    "id": 4,
+    "name": "charmanderaaa",
+    "height": 6,
+    "weight": 85,
+    "base_experience": 62,
+    "abilities": [
+      {
+        "is_hidden": false,
+        "slot": 1,
+        "ability": {
+          "name": "blaze",
+          "url": "https://pokeapi.co/api/v2/ability/66/"
+        }
+      },
+      {
+        "is_hidden": true,
+        "slot": 3,
+        "ability": {
+          "name": "solar-power",
+          "url": "https://pokeapi.co/api/v2/ability/94/"
+        }
+      }
+    ],
+    "sprites": {
+      "sprite_id": 13,
+      "pokemon_id": 7,
+      "back_default": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/4.png",
+      "back_female": null,
+      "back_shiny": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/shiny/4.png",
+      "back_shiny_female": null,
+      "front_default": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png",
+      "front_female": null,
+      "front_shiny": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/4.png",
+      "front_shiny_female": null,
+      "createdAt": "2026-05-02T06:39:11.000Z",
+      "updatedAt": "2026-05-02T06:39:11.000Z",
+      "deletedAt": null
+    }
   }
 }
 ```
@@ -158,16 +232,45 @@ Response
   "code": 200,
   "message": "Success get data pokemon",
   "data": {
-    "pokemon_id": 1,
-    "id": 1,
-    "name": "bulbasaur",
-    "height": 7,
-    "weight": 69,
-    "base_experience": 64,
-    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/1.png",
-    "createdAt": "2026-04-30T17:52:54.000Z",
-    "updatedAt": "2026-05-01T04:11:09.000Z",
-    "deletedAt": null
+    "pokemon_id": 7,
+    "id": 4,
+    "name": "charmander",
+    "height": 6,
+    "weight": 85,
+    "base_experience": 62,
+    "abilities": [
+      {
+        "is_hidden": false,
+        "slot": 1,
+        "ability": {
+          "name": "blaze",
+          "url": "https://pokeapi.co/api/v2/ability/66/"
+        }
+      },
+      {
+        "is_hidden": true,
+        "slot": 3,
+        "ability": {
+          "name": "solar-power",
+          "url": "https://pokeapi.co/api/v2/ability/94/"
+        }
+      }
+    ],
+    "sprites": {
+      "sprite_id": 13,
+      "pokemon_id": 7,
+      "back_default": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/4.png",
+      "back_female": null,
+      "back_shiny": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/shiny/4.png",
+      "back_shiny_female": null,
+      "front_default": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png",
+      "front_female": null,
+      "front_shiny": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/4.png",
+      "front_shiny_female": null,
+      "createdAt": "2026-05-02T06:39:11.000Z",
+      "updatedAt": "2026-05-02T06:41:16.000Z",
+      "deletedAt": null
+    }
   }
 }
 ```
@@ -190,13 +293,12 @@ Response
     {
       "pokemon_id": 1,
       "id": 1,
-      "name": "bulbasaur",
+      "name": "bulbasaura",
       "height": 7,
       "weight": 69,
       "base_experience": 64,
-      "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/1.png",
       "createdAt": "2026-04-30T17:52:54.000Z",
-      "updatedAt": "2026-05-01T04:11:09.000Z",
+      "updatedAt": "2026-05-02T06:03:58.000Z",
       "deletedAt": null
     }
   ],
