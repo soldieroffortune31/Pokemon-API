@@ -1,56 +1,94 @@
 const ResponseError = require("../error/error.response")
-const { pokemon } = require("../models")
+const { sequelize, pokemon, abilities, pokemon_abilities } = require("../models")
 const PokemonAPI = require("../api/pokemon.api")
 const validate = require("../validation/validate")
 const { updatePokemonValidation } = require("../validation/pokemon.validation")
 const PokemonChace = require("../cache/pokemon.cache")
 
 const Create = async (id) => {
-
-    const key = `pokemon:${id}`
-    const keyPokemonAPI = `pokemon:api:${id}`
+    await sequelize.transaction(async (t) => {
     
-    let getPokemonAPI = await PokemonChace.get(keyPokemonAPI)
-    if (!getPokemonAPI) {
-        getPokemonAPI = await PokemonAPI.GetPokemonById(id)
-        await PokemonChace.set(keyPokemonAPI, getPokemonAPI)
-    }    
-
-    let getPokemon = await PokemonChace.get(key)
-    if (!getPokemon) {
-        getPokemon = await pokemon.findOne({
-            where: {
-                id
-            }
-        })
-    }
-
-    let result
-    if (getPokemon) {
-        const update = await pokemon.update(
-            getPokemonAPI,
-            {
+        const key = `pokemon:${id}`
+        const keyPokemonAPI = `pokemon:api:${id}`
+        
+        let getPokemonAPI = await PokemonChace.get(keyPokemonAPI)
+        if (!getPokemonAPI) {
+            getPokemonAPI = await PokemonAPI.GetPokemonById(id)
+            await PokemonChace.set(keyPokemonAPI, getPokemonAPI, 120)
+        }  
+    
+        let getPokemon = await PokemonChace.get(key)
+        if (!getPokemon) {
+            getPokemon = await pokemon.findOne({
                 where: {
                     id
                 },
-                returning: true
-            }
-        )
+                transaction: t
+            })
+        }
 
-        result = await pokemon.findOne({
+        let result
+        if (getPokemon) {
+            const update = await pokemon.update(
+                getPokemonAPI,
+                {
+                    where: {
+                        id
+                    },
+                    transaction: t
+                }
+            )
+    
+            result = await pokemon.findOne({
+                where: {
+                    id
+                }
+            })
+        } else {
+            result = await pokemon.create(getPokemonAPI, 
+            {
+                transaction: t
+            })
+        }
+
+        await pokemon_abilities.destroy({
             where: {
-                id
-            }
+                pokemon_id: result.pokemon_id
+            },
+            force: true,
+            transaction: t
         })
-    } else {
-        result = await pokemon.create(getPokemonAPI)
-    }
 
+        if (getPokemonAPI?.abilities?.length > 0) {
+            for (let index = 0; index < getPokemonAPI.abilities.length; index++) {
+                const element = getPokemonAPI.abilities[index];
+                
+                const [ability] = await abilities.findOrCreate({
+                    where: {
+                        name: element.ability.name
+                    },
+                    defaults: {
+                        url: element.ability.url
+                    },
+                    transaction: t
+                })
 
-    await PokemonChace.del(key)
-    await PokemonChace.set(key, result)
-
-    return result
+                await pokemon_abilities.create({
+                    pokemon_id: result.pokemon_id,
+                    ability_id: ability.ability_id,
+                    is_hidden: element.is_hidden,
+                    slot: element.slot
+                }, {
+                    transaction: t
+                })
+            }
+        }
+    
+        await PokemonChace.del(key)
+        await PokemonChace.set(key, result)
+    
+        return result
+    })
 }
 
 const Update = async (request) => {
@@ -130,7 +168,22 @@ const FindById = async (id) => {
     const getPokemon = await pokemon.findOne({
         where: {
             id
-        }
+        },
+        attributes: ["pokemon_id", "id", "height", "weight", "image"],
+        include: [
+            {
+                model: pokemon_abilities,
+                as: "abilities",
+                attributes: ["is_hidden", "slot"],
+                include: [
+                    {
+                        model: abilities,
+                        as: "ability",
+                        attributes: ["name", "url"]
+                    }
+                ]
+            }
+        ]
     })
 
     if (!getPokemon) {

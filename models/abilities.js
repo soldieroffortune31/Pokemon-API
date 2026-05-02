@@ -2,8 +2,9 @@
 const {
   Model
 } = require('sequelize');
+const pokemon_abilities = require('./pokemon_abilities');
 module.exports = (sequelize, DataTypes) => {
-  class pokemon extends Model {
+  class abilities extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,48 +12,32 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      pokemon.hasMany(models.pokemon_abilities, {
-        as: "abilities",
-        foreignKey: "pokemon_id",
-        sourceKey: "pokemon_id"
+      abilities.hasMany(models.pokemon_abilities, {
+        as: "pokemon_abilities",
+        foreignKey: "ability_id",
+        sourceKey: "ability_id"
       })
     }
   }
-  pokemon.init({
-    pokemon_id: {
+  abilities.init({
+    ability_id: {
         primaryKey: true,
         autoIncrement: true,
-        type: DataTypes.INTEGER
-    },
-    id: {
-        allowNull: false,
         type: DataTypes.INTEGER
     },
     name: {
       allowNull: false,
       type: DataTypes.STRING(225)
     },
-    height: {
-        allowNull: false,
-        type: DataTypes.INTEGER
-    },
-    weight: {
-        allowNull: false,
-        type: DataTypes.INTEGER
-    },
-    base_experience: {
-        allowNull: false,
-        type: DataTypes.INTEGER
-    },
-    image: {
+    url: {
         allowNull: false,
         type: DataTypes.TEXT
-    },
+    }
   }, {
     sequelize,
-    modelName: 'pokemon',
-    tableName: 'pokemons',
+    modelName: 'abilities',
+    tableName: 'abilities',
     paranoid: true  
   });
-  return pokemon;
+  return abilities;
 };

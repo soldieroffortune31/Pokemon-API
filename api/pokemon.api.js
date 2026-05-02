@@ -17,7 +17,8 @@ const ToPokemonReponse = (data) => {
         height: data.height,
         weight: data.weight,
         base_experience: data.base_experience,
-        image: data?.sprites?.other?.home?.front_default || null
+        image: data?.sprites?.other?.home?.front_default || null,
+        abilities: data.abilities
     }
 } 
 
